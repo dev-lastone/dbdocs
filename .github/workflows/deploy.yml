@@ -2,7 +2,7 @@ name: DEPLOY
 
 on:
   push:
-    branches: [ main ]
+    branches: [ feature/ci ]
 
 env:
   DBDOCS_TOKEN: ${{ secrets.DBDOCS_TOKEN }}
@@ -29,6 +29,7 @@ jobs:
         if: steps.changes.outputs.files != ''
         run: |
           for file in ${{ steps.changes.outputs.files }}; do
-            PROJECT_NAME=$(basename "$file" .dbml | tr '[:lower:]' '[:upper:]')
+            BASENAME=$(basename "$file" .dbml)
+            PROJECT_NAME=$(echo "$BASENAME" | tr '[:lower:]' '[:upper:]')
             dbdocs build "$file" --project "$PROJECT_NAME"
           done
