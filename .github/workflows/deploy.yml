@@ -15,21 +15,22 @@ jobs:
         with:
           fetch-depth: 2
 
-      - name: Get changed files
+      - name: Get changed .dbml files
         id: changes
         run: |
-          CHANGED_FILES=$(git diff --name-only ${{ github.sha }}^ ${{ github.sha }})
-          echo "files=$CHANGED_FILES" >> $GITHUB_OUTPUT
+            CHANGED_FILES=$(git diff --name-only ${{ github.sha }}^ ${{ github.sha }} | grep '\.dbml$' || true)
+            echo "files=$CHANGED_FILES" >> $GITHUB_OUTPUT
 
-      - name: Install dbdocs
-        if: contains(steps.changes.outputs.files, 'dbml/')
-        run: sudo npm install -g dbdocs
+            - name: Install dbdocs
+              if: steps.changes.outputs.files != ''
+              run: sudo npm install -g dbdocs
 
-      - name: Deploy changed DBML files
-        if: steps.changes.outputs.files != ''
-        run: |
-          for file in ${{ steps.changes.outputs.files }}; do
-            BASENAME=$(basename "$file" .dbml)
-            PROJECT_NAME=$(echo "$BASENAME" | tr '[:lower:]' '[:upper:]')
-            dbdocs build "$file" --project "$PROJECT_NAME"
-          done
+            - name: Deploy changed DBML files
+              if: steps.changes.outputs.files != ''
+              run: |
+                for file in ${{ steps.changes.outputs.files }}; do
+                  echo "Processing $file ..."
+                  BASENAME=$(basename "$file" .dbml)
+                  PROJECT_NAME=$(echo "$BASENAME" | tr '[:lower:]' '[:upper:]')
+                  dbdocs build "$file" --project "$PROJECT_NAME"
+                done
