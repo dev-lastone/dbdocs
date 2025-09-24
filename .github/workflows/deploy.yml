@@ -1,0 +1,34 @@
+name: DEPLOY
+
+on:
+  push:
+    branches: [ main ]
+
+env:
+  DBDOCS_TOKEN: ${{ secrets.DBDOCS_TOKEN }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Get changed files
+        id: changes
+        run: |
+          CHANGED_FILES=$(git diff --name-only ${{ github.sha }}^ ${{ github.sha }})
+          echo "files=$CHANGED_FILES" >> $GITHUB_OUTPUT
+
+      - name: Install dbdocs
+        if: contains(steps.changes.outputs.files, 'dbml/')
+        run: sudo npm install -g dbdocs
+
+      - name: Deploy changed DBML files
+        if: steps.changes.outputs.files != ''
+        run: |
+          for file in ${{ steps.changes.outputs.files }}; do
+            PROJECT_NAME=$(basename "$file" .dbml | tr '[:lower:]' '[:upper:]')
+            dbdocs build "$file" --project "$PROJECT_NAME"
+          done
