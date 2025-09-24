@@ -1,7 +1,6 @@
 Table "user" {
   "id" bigint [pk, not null, increment]
   "name" varchar(20) [not null]
-  "email" varchar(50) [not null, unique]
   "createdAt" datetime [not null, default: `current_timestamp()`]
   "updatedAt" datetime [not null, default: `current_timestamp()`]
   "deletedAt" datetime
